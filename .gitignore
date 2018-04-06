@@ -1,1 +1,6 @@
 /sample_sourcecode/*
+/.ipynb_checkpoints/*
+*.csv
+*.zip
+sample_sourcecode/click.csv
+sample_sourcecode/data3.csv
