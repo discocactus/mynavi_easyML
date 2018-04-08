@@ -44,12 +44,6 @@ $$
 \end{align}
 $$
 # $$
-# \begin{align}
-# {z^{(i)}} = \frac{\pi^2}{6}
-# \end{align}
-# $$
-
-# $$
 # \newcommand{\rot}[1]{\nabla\times #1}
 # \newcommand{\pdfrac}[2]{\frac{\partial #1}{\partial #2}}
 # \begin{align}
@@ -70,6 +64,13 @@ $$
 \end{align}
 $$
 # # 
+
+# __標準化__
+# $$
+# \begin{align}
+# {z^{(i)}} = \frac{x^{(i)}-u}{\sigma}
+# \end{align}
+# $$
 
 # In[ ]:
 
