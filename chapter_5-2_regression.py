@@ -31,11 +31,53 @@ plt.plot(train_x, train_y, 'o')
 plt.show()
 
 
+# # 数式表現のお勉強
+
+# $$
+# \begin{align}
+# \sum_{k=1}^{\infty} \frac{1}{k^2} = \frac{\pi^2}{6}
+# \end{align}
+# $$
+$$
+\begin{align}
+\sum_{k=1}^{\infty} \frac{1}{k^2} = \frac{\pi^2}{6}
+\end{align}
+$$
+# $$
+# \begin{align}
+# {z^{(i)}} = \frac{\pi^2}{6}
+# \end{align}
+# $$
+
+# $$
+# \newcommand{\rot}[1]{\nabla\times #1}
+# \newcommand{\pdfrac}[2]{\frac{\partial #1}{\partial #2}}
+# \begin{align}
+#   \mathbf{D} &= 0 \\\
+#   \mathbf{B} &= 0 \\\
+#   \rot{\mathbf{E}} &= - \pdfrac{\mathbf{B}}{t} \\\
+#   \rot{\mathbf{H}} &= \pdfrac{\mathbf{D}}{t}
+# \end{align}
+# $$
+$$
+\newcommand{\rot}[1]{\nabla\times #1}
+\newcommand{\pdfrac}[2]{\frac{\partial #1}{\partial #2}}
+\begin{align}
+  \mathbf{D} &= 0 \\\
+  \mathbf{B} &= 0 \\\
+  \rot{\mathbf{E}} &= - \pdfrac{\mathbf{B}}{t} \\\
+  \rot{\mathbf{H}} &= \pdfrac{\mathbf{D}}{t}
+\end{align}
+$$
+# # 
+
 # In[ ]:
 
 
-# 標準化
+# 標準化(z-score正規化)
+# 平均を0、分散を1に変換
 # 標準偏差に対してどのくらいの値か
+# パラメーターの収束が早くなる
 mu = train_x.mean()
 sigma = train_x.std()
 def standardize(x):
@@ -68,27 +110,10 @@ def f(x):
 
 # 目的関数
 # 学習データと予測値の誤差の二乗の総和
-# 定数 0.5 は結果の式を簡単にするために付けられた定数
+# 0.5 は学習に用いる式を導出する際に微分計算で出てくる 2 を相殺するために付けられた定数なので、
+# なくても最終的な結果は変わらないが、この定数の大小は収束までの計算回数に若干影響する
 def E(x, y):
     return 0.5 * np.sum((y - f(x)) ** 2)
-
-
-# In[ ]:
-
-
-theta0 - ETA * np.sum((f(train_z) - train_y))
-
-
-# In[ ]:
-
-
-theta1 - ETA * np.sum((f(train_z) - train_y) * train_z)
-
-
-# In[ ]:
-
-
-E(train_z, train_y)
 
 
 # In[ ]:
@@ -148,8 +173,15 @@ plt.show()
 # In[ ]:
 
 
+# パラメータと変数をそれぞれベクトルとみなすことで計算式を簡素化できる
+
+
+# In[ ]:
+
+
 # 学習データの行列を作る関数
 def to_matrix(x):
+    # theta0に対応するx0を1とした行列を転置
     return np.vstack([np.ones(x.shape[0]), x, x ** 2]).T
 
 
@@ -163,10 +195,28 @@ X = to_matrix(train_z)
 # In[ ]:
 
 
+X
+
+
+# In[ ]:
+
+
 # 予測関数
 def f(x):
     # 学習データの行列xとパラメータのベクトルthetaの積を求める
     return np.dot(x, theta)
+
+
+# In[ ]:
+
+
+np.dot(f(X) - train_y, X)
+
+
+# In[ ]:
+
+
+f(X) - train_y
 
 
 # In[ ]:
@@ -185,6 +235,7 @@ count = 0
 error = E(X, train_y)
 while diff > 1e-2:
     # パラメータを更新
+    # パラメータのベクトル - 学習率 * 誤差ベクトルと学習データ行列の積
     theta = theta - ETA * np.dot(f(X) - train_y, X)
     # 前回の誤差との差分を計算
     current_error = E(X, train_y)
@@ -218,7 +269,7 @@ def MSE(x, y):
 # In[ ]:
 
 
-# 計算打ち切りの条件を平均二乗誤差で計算
+# 目的関数(計算打ち切りの条件)を平均二乗誤差で計算
 
 # パラメータを初期化
 theta = np.random.rand(3)
