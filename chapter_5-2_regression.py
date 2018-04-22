@@ -31,44 +31,14 @@ plt.plot(train_x, train_y, 'o')
 plt.show()
 
 
-# # 数式表現のお勉強
-
+# __標準化(z-score正規化)__  
+# 平均を0、分散を1に変換(標準偏差に対してどのくらいの値か)  
+# パラメーターの収束が早くなる  
+# __$\mu$ (mu) = 平均__  
+# __$\sigma$ (sigma) = 分散__    
 # $$
 # \begin{align}
-# \sum_{k=1}^{\infty} \frac{1}{k^2} = \frac{\pi^2}{6}
-# \end{align}
-# $$
-$$
-\begin{align}
-\sum_{k=1}^{\infty} \frac{1}{k^2} = \frac{\pi^2}{6}
-\end{align}
-$$
-# $$
-# \newcommand{\rot}[1]{\nabla\times #1}
-# \newcommand{\pdfrac}[2]{\frac{\partial #1}{\partial #2}}
-# \begin{align}
-#   \mathbf{D} &= 0 \\\
-#   \mathbf{B} &= 0 \\\
-#   \rot{\mathbf{E}} &= - \pdfrac{\mathbf{B}}{t} \\\
-#   \rot{\mathbf{H}} &= \pdfrac{\mathbf{D}}{t}
-# \end{align}
-# $$
-$$
-\newcommand{\rot}[1]{\nabla\times #1}
-\newcommand{\pdfrac}[2]{\frac{\partial #1}{\partial #2}}
-\begin{align}
-  \mathbf{D} &= 0 \\\
-  \mathbf{B} &= 0 \\\
-  \rot{\mathbf{E}} &= - \pdfrac{\mathbf{B}}{t} \\\
-  \rot{\mathbf{H}} &= \pdfrac{\mathbf{D}}{t}
-\end{align}
-$$
-# # 
-
-# __標準化__
-# $$
-# \begin{align}
-# {z^{(i)}} = \frac{x^{(i)}-u}{\sigma}
+# {z^{(i)}} = \frac{x^{(i)}-\mu}{\sigma}
 # \end{align}
 # $$
 
@@ -76,9 +46,6 @@ $$
 
 
 # 標準化(z-score正規化)
-# 平均を0、分散を1に変換
-# 標準偏差に対してどのくらいの値か
-# パラメーターの収束が早くなる
 mu = train_x.mean()
 sigma = train_x.std()
 def standardize(x):
@@ -97,25 +64,122 @@ plt.show()
 
 # # 1次関数として実装
 
+# __予測関数__  
+# 切片と傾き  
+# $$
+# \begin{align}
+# f_\theta = \theta_0 + \theta_1x
+# \end{align}
+# $$
+
 # In[ ]:
 
 
 # 予測関数
-# 切片と傾き
 def f(x):
     return theta0 + theta1 * x
 
+
+# __目的関数__  
+# 学習データと予測値の誤差の二乗の総和  
+# $E(\theta)$ が最小となる $\theta$ を求めたい  
+# $\frac{1}{2}$ は学習に用いる式を導出する際に微分計算で出てくる 2 を相殺するために付けられた定数なので、  
+# なくても最終的な結果は変わらないが、この定数の大小は収束までの計算回数に若干影響する  
+# $$
+# \begin{align}
+# E(\theta) = \frac{1}{2} \sum_{i=1}^{n} \left( y^{(i)} - f_\theta (x^{(i)}) \right) ^2
+# \end{align}
+# $$
 
 # In[ ]:
 
 
 # 目的関数
-# 学習データと予測値の誤差の二乗の総和
-# 0.5 は学習に用いる式を導出する際に微分計算で出てくる 2 を相殺するために付けられた定数なので、
-# なくても最終的な結果は変わらないが、この定数の大小は収束までの計算回数に若干影響する
 def E(x, y):
     return 0.5 * np.sum((y - f(x)) ** 2)
 
+
+# __パラメーターの更新式の導出__  
+# __最急降下法、勾配降下法__  
+# 導関数の符号と逆方向に $\theta$ をずらして(減算)行けば最小値の方に向かう  
+# $f_\theta(x)$ は $\theta_0$ と $\theta_1$ を持つ2変数関数なので偏微分を行う  
+# __$\eta$ (eta) = 学習率__  
+# $$
+# \begin{align*}
+# & \theta_0 := \theta_0 - \eta \frac{\partial E}{\partial \theta_0} \\
+# & \theta_1 := \theta_1 - \eta \frac{\partial E}{\partial \theta_1}
+# \end{align*}
+# $$
+
+# ここで $\theta_0$, $\theta_1$ はそれぞれ $E(\theta)$ の中の $f_\theta(x)$ の中にあるので、、、  
+# $$
+# \begin{align*}
+# & u = E(\theta) = \frac{1}{2} \sum_{i=1}^{n} \left( y^{(i)} - f_\theta (x^{(i)}) \right) ^2\\
+# & v = f_\theta(x) = \theta_0 + \theta_1x
+# \end{align*}
+# $$
+# として、合成関数の微分を行う    
+# $$
+# \begin{align*}
+# & \frac{\partial u}{\partial \theta_0} = \frac{\partial u}{\partial v}\cdot\frac{\partial v}{\partial \theta_0} \\
+# & \frac{\partial u}{\partial \theta_1} = \frac{\partial u}{\partial v}\cdot\frac{\partial v}{\partial \theta_1}
+# \end{align*}
+# $$
+
+# __$\theta_0$ の更新式の導出__  
+# ・$u$ を $v$ で微分  
+# $$
+# \begin{align*}
+# \frac{\partial u}{\partial v} & = \frac{\partial}{\partial v} \left( \frac{1}{2} \sum_{i=1}^{n} \left( y^{(i)} - v \right) ^2 \right) \\
+# & = \frac{1}{2} \sum_{i=1}^{n} \left( \frac{\partial}{\partial v} \left( y^{(i)} - v \right) ^2 \right) \\
+# & = \frac{1}{2} \sum_{i=1}^{n} \left( \frac{\partial}{\partial v} \left( y^{(i)^2} - 2y^{(i)}v +v^2 \right) \right) \\
+# & = \frac{1}{2} \sum_{i=1}^{n} \left( -2y^{(i)} + 2v \right) \\
+# & = \sum_{i=1}^{n} \left( v -y^{(i)} \right)
+# \end{align*}
+# $$
+# ・$v$ を $\theta_0$ で微分  
+# $$
+# \begin{align*}
+# \frac{\partial v}{\partial \theta_0} & = \frac{\partial}{\partial \theta_0} (\theta_0 + \theta_1 x) \\
+# & = 1
+# \end{align*}
+# $$
+# ・それぞれの結果を掛けて、$v$ を $f_\theta(x)$ に戻す  
+# $$
+# \begin{align*}
+# \frac{\partial u}{\partial \theta_0} & = \frac{\partial u}{\partial v}\cdot\frac{\partial v}{\partial \theta_0} \\
+# & = \sum_{i=1}^{n} \left( v -y^{(i)} \right) \cdot 1 \\
+# & = \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) -y^{(i)} \right)
+# \end{align*}
+# $$
+
+# __$\theta_1$ の更新式の導出__  
+# ・$u$ を $v$ で微分する部分は $\theta_0$ について求めたものと同じ  
+# ・$v$ を $\theta_1$ で微分  
+# $$
+# \begin{align*}
+# \frac{\partial v}{\partial \theta_1} & = \frac{\partial}{\partial \theta_1} (\theta_0 + \theta_1 x) \\
+# & = x
+# \end{align*}
+# $$
+# ・それぞれの結果を掛けて、$v$ を $f_\theta(x)$ に戻す  
+# $$
+# \begin{align*}
+# \frac{\partial u}{\partial \theta_1} & = \frac{\partial u}{\partial v}\cdot\frac{\partial v}{\partial \theta_1} \\
+# & = \sum_{i=1}^{n} \left( v -y^{(i)} \right) \cdot x^{(i)} \\
+# & = \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) -y^{(i)} \right) \cdot x^{(i)}
+# \end{align*}
+# $$
+
+# __パラメーターの更新式__  
+# 1つ前の $\theta_0$ - 学習率 \* 目的関数を $\theta_0$ で偏微分して求めた導関数の総和  
+# 1つ前の $\theta_1$ - 学習率 \* 目的関数を $\theta_1$ で偏微分して求めた導関数の総和  
+# $$
+# \begin{align*}
+# & \theta_0 := \theta_0 - \eta \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) - y^{(i)} \right) \\
+# & \theta_1 := \theta_1 - \eta \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) - y^{(i)} \right) x^{(i)}
+# \end{align*}
+# $$
 
 # In[ ]:
 
@@ -171,11 +235,55 @@ plt.show()
 
 # # 多項式回帰の実装
 
-# In[ ]:
+# __多項式回帰の予測関数__  
+# $$
+# \begin{align}
+# f_\theta(x) = \theta_0 + \theta_1 x + \theta_2 x^2
+# \end{align}
+# $$
 
+# パラメータと変数をそれぞれベクトルとみなすことで計算式を簡単にする  
+#   
+# $$
+# \boldsymbol{\theta} = \left[
+# \begin{array}{c}
+#   \theta_0 \\
+#   \theta_1 \\
+#   \theta_2
+# \end{array}
+# \right]
+# \qquad
+# \boldsymbol{x(i)} = \left[
+# \begin{array}{c}
+#   1 \\
+#   x^{(i)} \\
+#   x^{(i)^2}
+# \end{array}
+# \right]
+# $$
 
-# パラメータと変数をそれぞれベクトルとみなすことで計算式を簡素化できる
-
+# 学習データが複数あるので1行を1つの学習データとみなして行列として考える  
+# 
+# $$
+# \boldsymbol{X} = \left[
+# \begin{array}{c}
+#   \boldsymbol{x}^{(1)^T} \\
+#   \boldsymbol{x}^{(2)^T} \\
+#   \boldsymbol{x}^{(3)^T} \\
+#   \vdots \\
+#   \boldsymbol{x}^{(n)^T}
+# \end{array}
+# \right]
+# = \left[
+# \begin{array}{ccc}
+#   1 & x^{(1)} & x^{(1)^2} \\
+#   1 & x^{(2)} & x^{(2)^2} \\
+#   1 & x^{(3)} & x^{(3)^2} \\
+#   & \vdots & \\
+#   1 & x^{(n)} & x^{(n)^2}
+# \end{array}
+# \right]
+# $$
 
 # In[ ]:
 
@@ -199,6 +307,34 @@ X = to_matrix(train_z)
 X
 
 
+# 学習データの行列 $\boldsymbol{X}$ とパラメータのベクトル $\boldsymbol{\theta}$ の積をとる
+# 
+# $$
+# f_\boldsymbol{\theta}(\boldsymbol{x}^{(i)}) = \boldsymbol{X\theta} = \left[
+# \begin{array}{ccc}
+#   1 & x^{(1)} & x^{(1)^2} \\
+#   1 & x^{(2)} & x^{(2)^2} \\
+#   1 & x^{(3)} & x^{(3)^2} \\
+#   & \vdots & \\
+#   1 & x^{(n)} & x^{(n)^2}
+# \end{array}
+# \right]
+# \left[
+# \begin{array}{c}
+#   \theta_0 \\
+#   \theta_1 \\
+#   \theta_2
+# \end{array}
+# \right] = \left[
+# \begin{array}{c}
+#   \theta_0 + \theta_1 x^{(1)} + \theta_2 x^{(1)^2} \\
+#   \theta_0 + \theta_1 x^{(2)} + \theta_2 x^{(2)^2} \\
+#   \vdots \\
+#   \theta_0 + \theta_1 x^{(n)} + \theta_2 x^{(n)^2}
+# \end{array}
+# \right]
+# $$
+
 # In[ ]:
 
 
@@ -211,14 +347,85 @@ def f(x):
 # In[ ]:
 
 
-np.dot(f(X) - train_y, X)
+# 参考
+f(X)
 
 
 # In[ ]:
 
 
-f(X) - train_y
+# 参考
+theta
 
+
+# In[ ]:
+
+
+# 参考
+# f(X)[0] =
+theta[0] + theta[1] * X[0][1] + theta[2] * X[0][2]
+
+
+# __追加された $\theta_2$ の更新式の導出__  
+# ・$u$ を $v$ で微分する部分は $\theta_0$ について求めたものと同じ  
+# ・$v$ を $\theta_2$ で微分  
+# $$
+# \begin{align*}
+# \frac{\partial v}{\partial \theta_2} & = \frac{\partial}{\partial \theta_2} (\theta_0 + \theta_1 x +\theta_2 x^2) \\
+# & = x^2
+# \end{align*}
+# $$
+# ・それぞれの結果を掛けて、$v$ を $f_\theta(x)$ に戻す  
+# $$
+# \begin{align*}
+# \frac{\partial u}{\partial \theta_2} & = \frac{\partial u}{\partial v}\cdot\frac{\partial v}{\partial \theta_2} \\
+# & = \sum_{i=1}^{n} \left( v -y^{(i)} \right) \cdot x^{(i)^2} \\
+# & = \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) -y^{(i)} \right) \cdot x^{(i)^2}
+# \end{align*}
+# $$
+
+# __パラメーターの更新式__  
+# 1つ前の $\theta_0$ - 学習率 \* 目的関数を $\theta_0$ で偏微分して求めた導関数の総和  
+# 1つ前の $\theta_1$ - 学習率 \* 目的関数を $\theta_1$ で偏微分して求めた導関数の総和  
+# 1つ前の $\theta_2$ - 学習率 \* 目的関数を $\theta_2$ で偏微分して求めた導関数の総和  
+# $$
+# \begin{align*}
+# & \theta_0 := \theta_0 - \eta \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) - y^{(i)} \right) \\
+# & \theta_1 := \theta_1 - \eta \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) - y^{(i)} \right) x^{(i)} \\
+# & \theta_2 := \theta_2 - \eta \sum_{i=1}^{n} \left( f_\theta(x^{(i)}) - y^{(i)} \right) x^{(i)^2}
+# \end{align*}
+# $$
+# 
+# __パラメーターの数を $j$ として一般化__  
+# $$
+# \begin{align*}
+# & \theta_j := \theta_j - \eta \sum_{i=1}^{n} \left( f_\boldsymbol{\theta}(\boldsymbol{x}^{(i)}) - y^{(i)} \right) x_j^{(i)}
+# \end{align*}
+# $$
+
+# ここで $j$=0 の時、$f_\theta(\boldsymbol{x}^{(i)}) - y^{(i)}$ と $x_0^{(i)}$ をそれぞれベクトルとして考える
+# $$
+# \boldsymbol{f} = \left[
+# \begin{array}{c}
+#   f_\theta(\boldsymbol{x}^{(1)}) - y^{(1)} \\
+#   f_\theta(\boldsymbol{x}^{(2)}) - y^{(2)} \\
+#   \vdots \\
+#   f_\theta(\boldsymbol{x}^{(n)}) - y^{(n)}
+# \end{array}
+# \right]
+# \qquad
+# \boldsymbol{x_0} = \left[
+# \begin{array}{c}
+#   x_0^{(1)} \\
+#   x_0^{(2)} \\
+#   \vdots \\
+#   x_0^{(n)}
+# \end{array}
+# \right]
+# $$
+# この $\boldsymbol{f}$ を転置して $\boldsymbol{x_0}$ と掛け合わせれば更新式の総和の部分と同じになる  
+# 
+# 同様にして $\boldsymbol{f}^{\mathrm{T}}$ と $x_j^{(i)}$ の行列 $\boldsymbol{X}$ を掛け合わせたものを更新式に用いる
 
 # In[ ]:
 
